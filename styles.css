@@ -61,6 +61,22 @@ body {
   padding: 0.8rem;
 }
 
+.source-note {
+  margin: 0.4rem 0.5rem 0.2rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.source-note a {
+  color: #1e4e8f;
+  text-underline-offset: 2px;
+}
+
+.source-note a:hover,
+.source-note a:focus-visible {
+  color: #0f3a73;
+}
+
 #chart {
   width: 100%;
 }
