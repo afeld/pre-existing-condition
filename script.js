@@ -38,7 +38,7 @@ function makeChart(data) {
   const yMax = d3.max(data, (d) => d.insuredPct);
   const y = d3
     .scaleLinear()
-    .domain([Math.floor(yMin - 1), Math.ceil(yMax + 1)])
+    .domain([0, Math.ceil(yMax + 1)])
     .nice()
     .range([plotHeight, 0]);
 
