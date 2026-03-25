@@ -1,6 +1,4 @@
 :root {
-  --bg-start: #f3efe5;
-  --bg-end: #dde8f8;
   --panel: rgba(255, 255, 255, 0.86);
   --ink: #1e2a39;
   --muted: #4b5d74;
@@ -18,18 +16,6 @@ body {
   min-height: 100vh;
   font-family: "IBM Plex Sans", sans-serif;
   color: var(--ink);
-  background:
-    radial-gradient(
-      1000px 500px at 15% -10%,
-      rgba(255, 196, 130, 0.45),
-      transparent 70%
-    ),
-    radial-gradient(
-      700px 500px at 100% 10%,
-      rgba(128, 176, 245, 0.35),
-      transparent 55%
-    ),
-    linear-gradient(130deg, var(--bg-start), var(--bg-end));
 }
 
 .page {
@@ -57,7 +43,6 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: 16px;
   backdrop-filter: blur(5px);
-  box-shadow: 0 14px 40px rgba(34, 52, 74, 0.12);
   padding: 0.8rem;
 }
 
