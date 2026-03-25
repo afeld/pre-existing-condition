@@ -33,47 +33,34 @@ const tip = d3.select(tooltip);
 const parseYear = d3.timeParse("%Y");
 const formatYear = d3.timeFormat("%Y");
 
-function makeChart(data) {
-  // Time scale for the x-axis: oldest year on the left, latest on the right.
+const createScales = (data) => {
   const xBase = d3
     .scaleTime()
     .domain(d3.extent(data, (d) => d.date))
     .range([0, plotWidth]);
 
-  // Track max insured percentage so y-axis can adapt to data while starting at zero.
   const yMax = d3.max(data, (d) => d.insuredPct);
   const yBase = d3
     .scaleLinear()
-    // Start at zero so vertical distances are not visually exaggerated.
     .domain([0, Math.ceil(yMax + 1)])
     .nice()
     .range([plotHeight, 0]);
 
-  // Working scales used during animation. Domains will be interpolated.
-  const x = xBase.copy();
-  const y = yBase.copy();
+  return { x: xBase.copy(), y: yBase.copy() };
+};
 
-  // Draw horizontal grid lines to make value comparisons easier.
+const drawAxesAndGrid = (x, y) => {
   const grid = g
     .append("g")
     .attr("class", "grid")
     .call(d3.axisLeft(y).ticks(6).tickSize(-plotWidth).tickFormat(""));
 
-  // Draw the x-axis and rotate labels to avoid overlap.
   const xAxisG = g
     .append("g")
     .attr("class", "axis")
     .attr("transform", `translate(0,${plotHeight})`)
     .call(d3.axisBottom(x).ticks(6).tickFormat(d3.timeFormat("%Y")));
 
-  xAxisG
-    .selectAll("text")
-    .attr("transform", "rotate(-35)")
-    .style("text-anchor", "end")
-    .attr("dx", "-0.6em")
-    .attr("dy", "0.3em");
-
-  // Draw the y-axis and format tick labels as percentages.
   const yAxis = g
     .append("g")
     .attr("class", "axis")
@@ -84,7 +71,19 @@ function makeChart(data) {
         .tickFormat((d) => `${d}%`),
     );
 
-  // X-axis title.
+  return { grid, xAxisG, yAxis };
+};
+
+const styleXAxisTickLabels = (xAxisG) => {
+  xAxisG
+    .selectAll("text")
+    .attr("transform", "rotate(-35)")
+    .style("text-anchor", "end")
+    .attr("dx", "-0.6em")
+    .attr("dy", "0.3em");
+};
+
+const drawAxisTitles = () => {
   g.append("text")
     .attr("x", plotWidth / 2)
     .attr("y", plotHeight + 48)
@@ -92,7 +91,6 @@ function makeChart(data) {
     .attr("text-anchor", "middle")
     .text("Year");
 
-  // Y-axis title.
   g.append("text")
     .attr("x", -plotHeight / 2)
     .attr("y", -48)
@@ -100,24 +98,27 @@ function makeChart(data) {
     .attr("transform", "rotate(-90)")
     .attr("text-anchor", "middle")
     .text("Residents with health insurance (%)");
+};
 
-  // Line generator maps each data point into screen coordinates.
-  const line = d3
+const createLineGenerator = (x, y) => {
+  return d3
     .line()
     .x((d) => x(d.date))
     .y((d) => y(d.insuredPct));
+};
 
-  // Draw the primary trend line.
-  const linePath = g
+const drawLine = (data, line) => {
+  return g
     .append("path")
     .datum(data)
     .attr("fill", "none")
     .attr("stroke", "var(--line)")
     .attr("stroke-width", 3)
     .attr("d", line);
+};
 
-  // Draw point markers and show an exact value tooltip on hover.
-  const points = g
+const drawPoints = (data, x, y) => {
+  return g
     .selectAll("circle")
     .data(data)
     .join("circle")
@@ -135,8 +136,9 @@ function makeChart(data) {
         );
     })
     .on("mouseleave", () => tip.style("opacity", 0));
+};
 
-  // Animate a moving viewport: 2 years wide on X, 15 percentage points on Y.
+const computeAnimationConfig = (data) => {
   const msPerYear = 365 * 24 * 60 * 60 * 1000;
   const xWindowMs = 2 * msPerYear;
   const firstDate = data[0].date;
@@ -152,26 +154,47 @@ function makeChart(data) {
 
   const fullDuration = 12000;
 
-  function redraw() {
-    grid.call(d3.axisLeft(y).ticks(6).tickSize(-plotWidth).tickFormat(""));
-    xAxisG
-      .call(d3.axisBottom(x).ticks(6).tickFormat(d3.timeFormat("%Y")))
-      .selectAll("text")
-      .attr("transform", "rotate(-35)")
-      .style("text-anchor", "end")
-      .attr("dx", "-0.6em")
-      .attr("dy", "0.3em");
+  return {
+    firstDate,
+    lastDate,
+    xTravelMs,
+    xWindowMs,
+    yFullMin,
+    yFullMax,
+    yWindowMin,
+    yWindowMax,
+    fullDuration,
+  };
+};
 
-    yAxis.call(
-      d3
-        .axisLeft(y)
-        .ticks(6)
-        .tickFormat((d) => `${d}%`),
-    );
+const redrawChart = ({ grid, xAxisG, yAxis, x, y, linePath, line, points }) => {
+  grid.call(d3.axisLeft(y).ticks(6).tickSize(-plotWidth).tickFormat(""));
+  xAxisG.call(d3.axisBottom(x).ticks(6).tickFormat(d3.timeFormat("%Y")));
+  styleXAxisTickLabels(xAxisG);
 
-    linePath.attr("d", line);
-    points.attr("cx", (d) => x(d.date)).attr("cy", (d) => y(d.insuredPct));
-  }
+  yAxis.call(
+    d3
+      .axisLeft(y)
+      .ticks(6)
+      .tickFormat((d) => `${d}%`),
+  );
+
+  linePath.attr("d", line);
+  points.attr("cx", (d) => x(d.date)).attr("cy", (d) => y(d.insuredPct));
+};
+
+const animateViewport = ({ x, y, redraw, config }) => {
+  const {
+    firstDate,
+    lastDate,
+    xTravelMs,
+    xWindowMs,
+    yFullMin,
+    yFullMax,
+    yWindowMin,
+    yWindowMax,
+    fullDuration,
+  } = config;
 
   svg
     .transition()
@@ -191,7 +214,6 @@ function makeChart(data) {
         );
         x.domain([xDomainStart, xDomainEnd]);
 
-        // Start with full Y range and tighten into a fixed 15-point window.
         const yMinNow = yFullMin + (yWindowMin - yFullMin) * zoomT;
         const yMaxNow = yFullMax + (yWindowMax - yFullMax) * zoomT;
         y.domain([yMinNow, yMaxNow]);
@@ -199,31 +221,60 @@ function makeChart(data) {
         redraw();
       };
     });
-}
+};
+
+const makeChart = (data) => {
+  const { x, y } = createScales(data);
+  const { grid, xAxisG, yAxis } = drawAxesAndGrid(x, y);
+  styleXAxisTickLabels(xAxisG);
+  drawAxisTitles();
+
+  const line = createLineGenerator(x, y);
+  const linePath = drawLine(data, line);
+  const points = drawPoints(data, x, y);
+  const config = computeAnimationConfig(data);
+
+  animateViewport({
+    x,
+    y,
+    config,
+    redraw: () =>
+      redrawChart({ grid, xAxisG, yAxis, x, y, linePath, line, points }),
+  });
+};
+
+const transformRowToDatum = (row) => {
+  const uninsuredPct = Number(row["No Health Insurance"]);
+  return {
+    year: Number(row.Year),
+    date: parseYear(row.Year),
+    insuredPct: 100 - uninsuredPct,
+  };
+};
+
+const isValidDatum = (datum) => {
+  return (
+    Number.isFinite(datum.year) &&
+    datum.date &&
+    Number.isFinite(datum.insuredPct)
+  );
+};
+
+const parseSurveyData = (rows) => {
+  return rows
+    .filter(
+      (row) =>
+        /^Prevalence/i.test(row.Prevelance) &&
+        row["No Health Insurance"] !== "",
+    )
+    .map(transformRowToDatum)
+    .filter(isValidDatum)
+    .sort((a, b) => a.year - b.year);
+};
 
 // Load local CSV data and build the chart.
 d3.csv("New_York_City_Community_Health_Survey_20260325.csv").then((rows) => {
-  const data = rows
-    // Keep only prevalence estimate rows (exclude confidence interval rows).
-    .filter(
-      (d) =>
-        /^Prevalence/i.test(d.Prevelance) && d["No Health Insurance"] !== "",
-    )
-    .map((d) => {
-      // Convert "No Health Insurance" into "With Health Insurance".
-      const uninsuredPct = Number(d["No Health Insurance"]);
-      return {
-        year: Number(d.Year),
-        date: parseYear(d.Year),
-        insuredPct: 100 - uninsuredPct,
-      };
-    })
-    // Remove malformed rows before rendering.
-    .filter(
-      (d) => Number.isFinite(d.year) && d.date && Number.isFinite(d.insuredPct),
-    )
-    // Ensure points are connected in chronological order.
-    .sort((a, b) => a.year - b.year);
+  const data = parseSurveyData(rows);
 
   makeChart(data);
 });
