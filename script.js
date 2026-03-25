@@ -35,30 +35,38 @@ const formatYear = d3.timeFormat("%Y");
 
 function makeChart(data) {
   // Time scale for the x-axis: oldest year on the left, latest on the right.
-  const x = d3
+  const xBase = d3
     .scaleTime()
     .domain(d3.extent(data, (d) => d.date))
     .range([0, plotWidth]);
 
   // Track max insured percentage so y-axis can adapt to data while starting at zero.
   const yMax = d3.max(data, (d) => d.insuredPct);
-  const y = d3
+  const yBase = d3
     .scaleLinear()
     // Start at zero so vertical distances are not visually exaggerated.
     .domain([0, Math.ceil(yMax + 1)])
     .nice()
     .range([plotHeight, 0]);
 
+  // Working scales used during animation. Domains will be interpolated.
+  const x = xBase.copy();
+  const y = yBase.copy();
+
   // Draw horizontal grid lines to make value comparisons easier.
-  g.append("g")
+  const grid = g
+    .append("g")
     .attr("class", "grid")
     .call(d3.axisLeft(y).ticks(6).tickSize(-plotWidth).tickFormat(""));
 
   // Draw the x-axis and rotate labels to avoid overlap.
-  g.append("g")
+  const xAxisG = g
+    .append("g")
     .attr("class", "axis")
     .attr("transform", `translate(0,${plotHeight})`)
-    .call(d3.axisBottom(x).ticks(data.length).tickFormat(d3.timeFormat("%Y")))
+    .call(d3.axisBottom(x).ticks(6).tickFormat(d3.timeFormat("%Y")));
+
+  xAxisG
     .selectAll("text")
     .attr("transform", "rotate(-35)")
     .style("text-anchor", "end")
@@ -66,7 +74,8 @@ function makeChart(data) {
     .attr("dy", "0.3em");
 
   // Draw the y-axis and format tick labels as percentages.
-  g.append("g")
+  const yAxis = g
+    .append("g")
     .attr("class", "axis")
     .call(
       d3
@@ -99,7 +108,8 @@ function makeChart(data) {
     .y((d) => y(d.insuredPct));
 
   // Draw the primary trend line.
-  g.append("path")
+  const linePath = g
+    .append("path")
     .datum(data)
     .attr("fill", "none")
     .attr("stroke", "var(--line)")
@@ -107,7 +117,8 @@ function makeChart(data) {
     .attr("d", line);
 
   // Draw point markers and show an exact value tooltip on hover.
-  g.selectAll("circle")
+  const points = g
+    .selectAll("circle")
     .data(data)
     .join("circle")
     .attr("cx", (d) => x(d.date))
@@ -124,6 +135,70 @@ function makeChart(data) {
         );
     })
     .on("mouseleave", () => tip.style("opacity", 0));
+
+  // Animate a moving viewport: 2 years wide on X, 15 percentage points on Y.
+  const msPerYear = 365 * 24 * 60 * 60 * 1000;
+  const xWindowMs = 2 * msPerYear;
+  const firstDate = data[0].date;
+  const lastDate = data[data.length - 1].date;
+  const xTravelMs = Math.max(0, lastDate - firstDate - xWindowMs);
+
+  const yDataMin = d3.min(data, (d) => d.insuredPct);
+  const yDataMax = d3.max(data, (d) => d.insuredPct);
+  const yFullMin = 0;
+  const yFullMax = Math.ceil(yDataMax + 1);
+  const yWindowMin = Math.floor(yDataMin);
+  const yWindowMax = yWindowMin + 15;
+
+  const fullDuration = 12000;
+
+  function redraw() {
+    grid.call(d3.axisLeft(y).ticks(6).tickSize(-plotWidth).tickFormat(""));
+    xAxisG
+      .call(d3.axisBottom(x).ticks(6).tickFormat(d3.timeFormat("%Y")))
+      .selectAll("text")
+      .attr("transform", "rotate(-35)")
+      .style("text-anchor", "end")
+      .attr("dx", "-0.6em")
+      .attr("dy", "0.3em");
+
+    yAxis.call(
+      d3
+        .axisLeft(y)
+        .ticks(6)
+        .tickFormat((d) => `${d}%`),
+    );
+
+    linePath.attr("d", line);
+    points.attr("cx", (d) => x(d.date)).attr("cy", (d) => y(d.insuredPct));
+  }
+
+  svg
+    .transition()
+    .duration(fullDuration)
+    .ease(d3.easeLinear)
+    .tween("progressive-zoom", () => {
+      return (t) => {
+        const zoomT = d3.easeCubicInOut(t);
+        const xStart = new Date(firstDate.getTime() + xTravelMs * t);
+        const xEnd = new Date(xStart.getTime() + xWindowMs);
+        const xDomainStart = new Date(
+          firstDate.getTime() +
+            (xStart.getTime() - firstDate.getTime()) * zoomT,
+        );
+        const xDomainEnd = new Date(
+          lastDate.getTime() + (xEnd.getTime() - lastDate.getTime()) * zoomT,
+        );
+        x.domain([xDomainStart, xDomainEnd]);
+
+        // Start with full Y range and tighten into a fixed 15-point window.
+        const yMinNow = yFullMin + (yWindowMin - yFullMin) * zoomT;
+        const yMaxNow = yFullMax + (yWindowMax - yFullMax) * zoomT;
+        y.domain([yMinNow, yMaxNow]);
+
+        redraw();
+      };
+    });
 }
 
 // Load local CSV data and build the chart.
