@@ -2,6 +2,10 @@
 
 Random code used in/around the production.
 
+## Analysis
+
+Create a `.env` file with an [X bearer token](https://docs.x.com/make-your-first-request).
+
 ## Exporting media
 
 Note to self: To export media from Apple Photos (rehearsal videos, etc.), run the following [in the OSX built-in Terminal.](https://github.com/RhetTbull/osxphotos/issues/1539#issuecomment-4526370233). Uses [osxphoto](https://github.com/RhetTbull/osxphotos).
