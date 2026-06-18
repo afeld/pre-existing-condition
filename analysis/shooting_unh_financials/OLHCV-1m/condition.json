@@ -1,5 +1,10 @@
 [
     {
+        "date": "2024-12-02",
+        "condition": "available",
+        "last_modified_date": "2025-11-28"
+    },
+    {
         "date": "2024-12-03",
         "condition": "available",
         "last_modified_date": "2025-11-28"
@@ -26,6 +31,81 @@
     },
     {
         "date": "2024-12-10",
+        "condition": "available",
+        "last_modified_date": "2025-11-28"
+    },
+    {
+        "date": "2024-12-11",
+        "condition": "available",
+        "last_modified_date": "2025-11-28"
+    },
+    {
+        "date": "2024-12-12",
+        "condition": "available",
+        "last_modified_date": "2025-11-28"
+    },
+    {
+        "date": "2024-12-13",
+        "condition": "available",
+        "last_modified_date": "2025-11-28"
+    },
+    {
+        "date": "2024-12-16",
+        "condition": "available",
+        "last_modified_date": "2025-11-28"
+    },
+    {
+        "date": "2024-12-17",
+        "condition": "available",
+        "last_modified_date": "2025-11-28"
+    },
+    {
+        "date": "2024-12-18",
+        "condition": "available",
+        "last_modified_date": "2025-11-28"
+    },
+    {
+        "date": "2024-12-19",
+        "condition": "available",
+        "last_modified_date": "2025-11-28"
+    },
+    {
+        "date": "2024-12-20",
+        "condition": "available",
+        "last_modified_date": "2025-11-28"
+    },
+    {
+        "date": "2024-12-23",
+        "condition": "available",
+        "last_modified_date": "2025-11-28"
+    },
+    {
+        "date": "2024-12-24",
+        "condition": "available",
+        "last_modified_date": "2025-11-28"
+    },
+    {
+        "date": "2024-12-25",
+        "condition": "available",
+        "last_modified_date": "2025-11-28"
+    },
+    {
+        "date": "2024-12-26",
+        "condition": "available",
+        "last_modified_date": "2025-11-28"
+    },
+    {
+        "date": "2024-12-27",
+        "condition": "available",
+        "last_modified_date": "2025-11-28"
+    },
+    {
+        "date": "2024-12-30",
+        "condition": "available",
+        "last_modified_date": "2025-11-28"
+    },
+    {
+        "date": "2024-12-31",
         "condition": "available",
         "last_modified_date": "2025-11-28"
     }

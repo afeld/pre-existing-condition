@@ -1,6 +1,6 @@
 {
     "version": 1,
-    "job_id": "XNAS-20260618-797GTRFYDN",
+    "job_id": "XNAS-20260618-P3SFESQ3TA",
     "query": {
         "dataset": "XNAS.ITCH",
         "schema": "ohlcv-1m",
@@ -9,8 +9,8 @@
         ],
         "stype_in": "raw_symbol",
         "stype_out": "instrument_id",
-        "start": 1733184000000000000,
-        "end": 1733803200000000000,
+        "start": 1733011200000000000,
+        "end": 1735617600000000000,
         "limit": null,
         "encoding": "csv",
         "compression": "zstd"
