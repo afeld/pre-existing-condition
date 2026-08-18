@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = "==3.12.*"
 dependencies = [
+    "altair>=6.2.2",
     "httpx>=0.28.1",
     "ipykernel>=7.3.0",
     # https://plotly.com/python/static-image-export/#kaleido
