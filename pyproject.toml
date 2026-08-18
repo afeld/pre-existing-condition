@@ -7,6 +7,10 @@ requires-python = ">=3.14"
 dependencies = [
     "httpx>=0.28.1",
     "ipykernel>=7.3.0",
+    # https://plotly.com/python/static-image-export/#kaleido
+    # fix for pandas.Timestamp is unreleased
+    # https://github.com/plotly/Kaleido/pull/461
+    "kaleido @ git+https://github.com/plotly/Kaleido.git#subdirectory=src/py",
     "nbformat>=4.2.0",
     "pandas>=3.0.3",
     "pandas-stubs>=3.0.3.260530",

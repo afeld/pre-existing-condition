@@ -13,7 +13,7 @@ Note to self: To export media from Apple Photos (rehearsal videos, etc.), run th
 ```sh
 mkdir -p ~/Downloads/rehearsals
 
-pipx run osxphotos export \
+uvx --from git+https://github.com/RhetTbull/osxphotos osxphotos export \
    --album "Pre-Existing Condition" \
    --skip-live --skip-original-if-edited --skip-raw \
    --edited-suffix "" \
